@@ -2,11 +2,16 @@ const D2CAuth = "Basic Y2F0YWxvZy1nZW5lcmF0b3ItaW50ZWdyYXRpb24tdGVzdDpoS00wN01Lc
 const tradeAuth = "Basic aW52ZW50b3J5LWFnZ3JlZ2F0b3I6SHQySExVR2JENHoxQ1Y3aUcwd2NPSVEyM0FVQzdMWjZTZnBZSHhya1hodm82QXdjMXV2N3ZueGVSNUFRWEFYVw==";
 const productURL = "https://api.commerce7.com/v1/product?cursor=";
 
+//processing arrays for product array calldown and sort
 let productList = [];
 let wineList = [];
 
+//holding arrays for sorted d2c and trade wine listings
 let d2cWines = [];
 let tradeWines = [];
+
+let tableRows = 1;
+let tableCols = 6; //(maker, wine, vintage, d2c count, trade count, total count)
 
 
 function setup() {
@@ -16,7 +21,7 @@ function setup() {
   populateProducts("start", D2CAuth);
   setTimeout(function() {
     console.log(window.location.href);
-    createTable(5, 2);
+    createTable(5, tableCols);
   }, 500);
 }
 
@@ -207,7 +212,7 @@ function wineName(wine) {
 
 
 
-
+//(maker, wine, vintage, d2c count, trade count, total count)
 function createTable(rows, cols) {
   var body = document.getElementsByTagName('body')[0];
   var table = document.createElement('table');
@@ -216,12 +221,42 @@ function createTable(rows, cols) {
   var tbody = document.createElement('tbody');
   for (var i = 0; i < rows; i++) {
     var tr = document.createElement('tr');
-    
-    for (var j = 0; j < cols; j++) {
-      console.log("hit");
-      var td = document.createElement('td');
-      td.appendChild(document.createTextNode('\u0020'))
-      tr.appendChild(td)
+    if (i == 0) {
+      for (var j = 0; j < cols; j++) {
+        var th = document.createElement('th');
+        var p = document.createElement('p');
+        switch (j) {
+          case 0:
+            p.innerHTML = "Maker";
+            break;
+          case 1:
+            p.innerHTML = "Wine";
+            break;
+          case 2:
+            p.innerHTML = "Vintage";
+            break;
+          case 3:
+            p.innerHTML = "D2C Inventory";
+            break;
+          case 4:
+            p.innerHTML = "Trade Inventory";
+            break;
+          case 5: 
+            p.innerHTML = "Total Inventory";
+            break;
+          default:
+            break;
+        }
+        th.appendChild(p);
+        tr.appendChild(th);
+      }
+    } else {
+      for (var j = 0; j < cols; j++) {
+        console.log("hit");
+        var td = document.createElement('td');
+        td.appendChild(document.createTextNode('\u0020'))
+        tr.appendChild(td)
+      }
     }
     tbody.appendChild(tr);
   }
