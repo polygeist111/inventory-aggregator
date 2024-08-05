@@ -15,6 +15,15 @@ let combinedWines = []; //[d2c, trade, variant id]
 let tableRows = 1;
 let tableCols = 6; //(maker, wine, vintage, d2c count, trade count, total count)
 
+let totalD2C = 0;
+let totalTrade = 0;
+let totalBottles = 0;
+let totalRed = 0;
+let totalWhite = 0;
+let totalRose = 0;
+let totalSparkling = 0;
+let totalNA = 0;
+
 
 function setup() {
   //createCanvas(400, 400);
@@ -23,7 +32,7 @@ function setup() {
   populateProducts("start", D2CAuth);
   setTimeout(function() {
     console.log(window.location.href);
-    createTable(5, tableCols);
+    //createTable(5, tableCols);
   }, 500);
 }
 
@@ -212,6 +221,7 @@ function aggregateLists() {
     append(combinedWines, thisWine);
   }
   console.log(combinedWines);
+  createTable(combinedWines.length + 1, tableCols);
 }
 
 
@@ -272,6 +282,9 @@ function wineName(wine) {
   if (wine.vendor.title == "Vinodea / Andrea Schenter") {
     makerNameSpace = 7;
   }
+  if (wine.vendor.title == "Hofkellerei") {
+    makerNameSpace = 42;
+  }
   return name.substring(makerNameSpace + 1);
 
 }
@@ -331,10 +344,60 @@ function createTable(rows, cols) {
         tr.appendChild(th);
       }
     } else {
+      let d2cCount = 0;
+      let tradeCount = 0;
       for (var j = 0; j < cols; j++) {
         console.log("hit");
+        let wine = "";
+        if (combinedWines[i - 1][0] != null) {
+          wine = combinedWines[i - 1][0];
+        } else {
+          wine = combinedWines[i - 1][1];
+        }
         var td = document.createElement('td');
-        td.appendChild(document.createTextNode('\u0020'))
+        //td.appendChild(document.createTextNode('\u0020'))
+        var p = document.createElement('p');
+        switch (j) {
+          case 0:
+            p.innerHTML = justMakerName(wine);
+            break;
+          case 1:
+            p.innerHTML = wineName(wine);
+            break;
+          case 2:
+            p.innerHTML = wineVintage(wine.title);
+            break;
+          case 3:
+            if (combinedWines[i - 1][0] != null) {
+              let inv = combinedWines[i - 1][0].variants[combinedWines[i - 1][2]].inventory[0];
+              let res = inv.reserveCount;
+              let allo = inv.allocatedCount;
+              let avail = inv.availableForSaleCount;
+              d2cCount = res + allo + avail;
+            }
+            totalD2C += d2cCount;
+            p.innerHTML = d2cCount;
+            break;
+          case 4:
+            if (combinedWines[i - 1][1] != null) {
+              let inv = combinedWines[i - 1][1].variants[combinedWines[i - 1][2]].inventory[0];
+              let res = inv.reserveCount;
+              let allo = inv.allocatedCount;
+              let avail = inv.availableForSaleCount;
+              tradeCount = res + allo + avail;
+            }
+            totalTrade += tradeCount;
+            p.innerHTML = tradeCount;
+            break;
+          case 5: 
+            let total = d2cCount + tradeCount;
+            totalBottles += total;
+            p.innerHTML = total;
+            break;
+          default:
+            break;
+        }
+        td.appendChild(p);
         tr.appendChild(td)
       }
     }
