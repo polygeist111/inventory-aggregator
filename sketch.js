@@ -10,6 +10,8 @@ let wineList = [];
 let d2cWines = [];
 let tradeWines = [];
 
+let combinedWines = []; //[d2c, trade, variant id]
+
 let tableRows = 1;
 let tableCols = 6; //(maker, wine, vintage, d2c count, trade count, total count)
 
@@ -97,14 +99,18 @@ function populateWineList(auth) {
 
 
 
-//Sorts wineList alpha by maker, then wine, then bundles by alpha at end (commented out sections are logic to sort bundles)
+//Sorts wineList alpha by maker, then wine, then vintage, then bundles by alpha at end (commented out sections are logic to sort bundles)
 function sortWineList(auth) {
   let wines = [];
   //let bundles = [];
   wineList.sort((a,b) => makerName(a.title).localeCompare(makerName(b.title)));
   wineList.sort(function (a,b) {
     if (makerName(a.title).localeCompare(makerName(b.title)) == 0) {
-      return wineName(a).localeCompare(wineName(b));
+      //return wineName(a).localeCompare(wineName(b));
+      if (wineName(a).localeCompare(wineName(b) == 0)) {
+        return wineVintage(a.title).localeCompare(wineVintage(b.title));
+      }
+      return 0;
     }
     return 0;
   });
@@ -134,6 +140,7 @@ function sortWineList(auth) {
     wineList = [];
     console.log(d2cWines);
     console.log(tradeWines);
+    aggregateLists();
   }
   /*
   //moves winelist into 2d array with space for prices
@@ -151,6 +158,70 @@ function sortWineList(auth) {
 }
 
 
+//Combines d2c wines and trade wines into single 2d array of format [d2c, trade, variant id];
+//Assumes there may be product count mismatches, but never variant count mismatches for a product
+function aggregateLists() {
+  let d2cInd = 0;
+  let tradeInd = 0;
+  let variantInd = 0;
+  while (d2cInd < d2cWines.length && tradeInd < tradeWines.length) {
+    let thisWine = [];
+    let alpha = (d2cWines[d2cInd].title).localeCompare(tradeWines[tradeInd].title);
+    //overall match
+    /*
+    *   --
+    *   --
+    *   --
+    */
+    if (alpha == 0) {
+      //iterate through variant skus for submatches
+      for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
+        if (d2cWines[d2cInd].variants[variantInd].sku == tradeWines[tradeInd].variants[variantInd].sku) {
+          thisWine = [d2cWines[d2cInd], tradeWines[tradeInd], variantInd];
+          break;
+        } else {
+          thisWine = [null, null, -1];
+          console.log("ERROR: Variant SKU mismatch for " + d2cWines[d2cInd].title + " at variant index " + variantInd);
+        }
+      }
+      d2cInd++;
+      tradeInd++; 
+    //d2c wine is earlier in alpha order
+    /* 
+    *   --
+    *   -
+    *   --
+    */  
+    } else if (alpha < 0) {
+      for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
+        thisWine = [d2cWines[d2cInd], null, variantInd];
+      }
+      d2cInd++;
+    //d2c wine is later in alpha order
+    /* 
+    *   --
+    *    -
+    *   --
+    */  
+    } else if (alpha > 0) {
+      for (variantInd = 0; variantInd < tradeWines[tradeInd].variants.length; variantInd++) {
+        thisWine = [null, tradeWines[tradeInd], variantInd];
+      }
+      tradeInd++;
+    }
+    append(combinedWines, thisWine);
+  }
+  console.log(combinedWines);
+}
+
+
+/*
+Errors to consider and handle:
+- product only exists on one list
+- multiple variants (list as separate)
+*/
+
+
 
 /*
 *   Parse wine/product name strings
@@ -164,6 +235,15 @@ function makerName(name) {
     return name.substring(5);
   } else return name;
 
+}
+
+
+
+//Returns wine vintage from title
+function wineVintage(name) {
+  if (name.substring(0,1) === "2") {
+    return name.substring(0, 5);
+  } else return "NV";
 }
 
 
@@ -262,4 +342,34 @@ function createTable(rows, cols) {
   }
   table.appendChild(tbody);
   body.appendChild(table)
+}
+
+
+
+//REQUIRES EXTENSIVE EDITING BEFORE USE
+//Applies trade prices (for all variants) to their correct places in pricedWineList array, automatically skips over unavailable wines. 
+//Trade price sheet must be correctly sorted and have accurate SKUs
+function filterPrices(priceIn) {
+  console.log(priceIn);
+  var winDex = 0;
+  //iterates across pricedWineList
+  for (var i = 0; i < pricedWineList.length; i++) {
+    //iterates through each variant for a given entry in pricedWineList
+    for (var s = 0; s < pricedWineList[i][0].variants.length; s++) {
+      //Skips past nonmatching entries
+
+      //if an error is thrown in this code, ensure than the file Archetyp Stocklist for Retail/Restaurant (on the TradingPriceConcise page) is appropriately organized
+      console.log(priceIn[winDex][0] + " " + (pricedWineList[i][0].variants[s].sku));
+      while (priceIn[winDex][0] != (pricedWineList[i][0].variants[s].sku)) {
+        console.log("entered loop");
+        winDex++;
+      }
+      //appends price to correct array slot for given wine in pricedWineList
+      if (priceIn[winDex][0] == (pricedWineList[i][0].variants[s].sku)) {
+        console.log("Added " + priceIn[winDex][0] + " " + pricedWineList[i][0].variants[s].sku);
+        pricedWineList[i][2 + s] = priceIn[winDex][1];
+        winDex++;
+      }
+    }
+  }
 }
