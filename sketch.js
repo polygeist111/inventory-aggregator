@@ -1,5 +1,5 @@
 const D2CAuth = "Basic Y2F0YWxvZy1nZW5lcmF0b3ItaW50ZWdyYXRpb24tdGVzdDpoS00wN01LcHE0aHVhZ2tMRHVrQ3FjRnU1R1FBTWVORUM2dWVpRU1ma09EdGQwUmFhNVYxZWlQRVhCaWtESDM5";
-const tradeAuth = "";
+const tradeAuth = "Basic aW52ZW50b3J5LWFnZ3JlZ2F0b3I6SHQySExVR2JENHoxQ1Y3aUcwd2NPSVEyM0FVQzdMWjZTZnBZSHhya1hodm82QXdjMXV2N3ZueGVSNUFRWEFYVw==";
 const productURL = "https://api.commerce7.com/v1/product?cursor=";
 
 let productList = [];
@@ -14,8 +14,10 @@ function setup() {
   noLoop();
   console.log("loaded");
   populateProducts("start", D2CAuth);
-  populateProducts("start", tradeAuth);
-  createTable(5, 2);
+  setTimeout(function() {
+    console.log(window.location.href);
+    createTable(5, 2);
+  }, 500);
 }
 
 function draw() {
@@ -51,11 +53,17 @@ function populateProducts(cursorIn, auth) {
 
 //Requests 50 product pages from C7
 async function fetch50Wines(url = "", auth) {
+  let tenant = "";
+  if (auth == D2CAuth) {
+    tenant = "archetyp";
+  } else if (auth == tradeAuth) {
+    tenant = "archetyp-distribution";
+  }
   const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       "Authorization": auth,
-      "Tenant": "archetyp",
+      "Tenant": tenant,
     },
   });
   const parsedJSON = await response.json();
@@ -105,11 +113,22 @@ function sortWineList(auth) {
   for (var i = 0; i < bundles.length; i++) {
     wineList.splice(wines.length + i, 1, bundles[i]);
   }*/
-  console.log(wineList);
+  //console.log(wineList);
   if (auth == D2CAuth) {
     console.log("d2c");
+    //wineList.forEach((wine) => append(d2cWines, wine));
+    d2cWines = JSON.parse(JSON.stringify(wineList));
+    productList = [];
+    wineList = [];
+    populateProducts("start", tradeAuth);
   } else if (auth == tradeAuth) {
     console.log("trade");
+    //wineList.forEach((wine) => append(tradeWines, wine));
+    tradeWines = JSON.parse(JSON.stringify(wineList));
+    productList = [];
+    wineList = [];
+    console.log(d2cWines);
+    console.log(tradeWines);
   }
   /*
   //moves winelist into 2d array with space for prices
