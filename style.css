@@ -1,0 +1,72 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #222a30;
+  font-family: "Brandon Grotesque", sans-serif;
+
+}
+
+canvas {
+  display: block;
+}
+
+@font-face { 
+  font-family: "Brandon Grotesque";
+  src: url('Fonts\\Web\\Brandon-Grotesque-Web-Regular.eot');
+  src: url('Fonts\\Web\\Brandon-Grotesque-Web-Regular.eot') format('embedded-opentype'),
+       url('Fonts\\Web\\Brandon-Grotesque-Web-Regular.woff2') format('woff2'),
+       url('Fonts\\Web\\Brandon-Grotesque-Web-Regular.woff') format('woff'),
+       url('Fonts\\Brandon-Grotesque-Regular.otf') format('opentype'); 
+} 
+
+table {
+  border: 2px solid #ed215b;
+  border-collapse: collapse;
+  width: 90%;
+  transform: translateX(5%);
+}
+table a:link {
+  color: #dddbff;
+}
+table a:visited {
+  color: #8240c4;
+}
+table a:hover {
+  color: #ed215b;
+}
+
+th {
+  border: 1px solid #ed215b;
+  border-collapse: collapse;
+  padding: .5em;
+  color: #8240c4;
+}
+
+td {
+  border: 1px solid #ed215b;
+  border-collapse: collapse;
+  text-align: center;
+  padding: .5em;
+  color: #dddbff;
+}
+
+/*
+First ping trade side, populate array with each wine vintage, maker, name, available ct.
+Repeat process with d2c side, match and only include wines by SKU.
+Dynamically create table with rows = total wines, columns = 6 (maker, wine, vintage, d2c count, trade count, total count)
+highlight cells indicating low inventory (12 bottles d2c, 48 bottles trade)
+
+
+
+copy populator, name parsing, sku matching functions from catalog generator
+
+
+
+
+
+
+*/
