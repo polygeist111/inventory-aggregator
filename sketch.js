@@ -12,8 +12,7 @@ let tradeWines = [];
 
 let combinedWines = []; //[d2c, trade, variant id]
 
-let tableRows = 1;
-let tableCols = 6; //(maker, wine, vintage, d2c count, trade count, total count)
+let tableCols = 12; //(maker, wine, vintage, d2c count, trade count, total count)
 
 let totalD2C = 0;
 let totalTrade = 0;
@@ -221,7 +220,7 @@ function aggregateLists() {
     append(combinedWines, thisWine);
   }
   console.log(combinedWines);
-  createTable(combinedWines.length + 1, tableCols);
+  createTable(combinedWines.length + 2, tableCols);
 }
 
 
@@ -267,6 +266,9 @@ function justMakerName(wineIn) {
   bottleName = wineName(wineIn);
   let result =  makeName.substring(0, makeName.length - bottleName.length - 1);
   //if (!makers.includes(result)) { makers.push(result); console.log("hi"); } else { console.log("bye"); }
+  if (result.substring(0, 11) == "Hofkellerei") {
+    return "Hofkellerei";
+  }
   return result;
 
 }
@@ -320,6 +322,44 @@ function createTable(rows, cols) {
         var p = document.createElement('p');
         switch (j) {
           case 0:
+            th.setAttribute("rowSpan", "2");
+            p.innerHTML = "Maker";
+            break;
+          case 1:
+            th.setAttribute("rowSpan", "2");
+            p.innerHTML = "Wine";
+            break;
+          case 2:
+            th.setAttribute("rowSpan", "2");
+            p.innerHTML = "Vintage";
+            break;
+          case 3:
+            th.setAttribute("colSpan", "4");
+            p.innerHTML = "D2C Inventory";
+            break;
+          case 4:
+            th.setAttribute("colSpan", "4");
+            p.innerHTML = "Trade Inventory";
+            break;
+          case 5: 
+            th.setAttribute("rowSpan", "2");
+            p.innerHTML = "Total Inventory";
+            break;
+          default:
+            break;
+        }
+        if (j < 6) {
+          th.appendChild(p);
+          tr.appendChild(th);
+        }
+      }
+    } else if (i == 1) {
+      for (var j = 0; j < cols; j++) {
+        var th = document.createElement('th');
+        var p = document.createElement('p');
+        switch (j) {
+          /*
+          case 0:
             p.innerHTML = "Maker";
             break;
           case 1:
@@ -327,69 +367,126 @@ function createTable(rows, cols) {
             break;
           case 2:
             p.innerHTML = "Vintage";
+            break;*/
+          case 0:
+            p.innerHTML = "Available";
             break;
-          case 3:
-            p.innerHTML = "D2C Inventory";
+          case 1:
+            p.innerHTML = "Allocated";
             break;
+          case 2: 
+            p.innerHTML = "Reserve";
+            break;
+          case 3: 
+            p.innerHTML = "Total";
+          break;
           case 4:
-            p.innerHTML = "Trade Inventory";
+            p.innerHTML = "Available";
             break;
-          case 5: 
-            p.innerHTML = "Total Inventory";
+          case 5:
+            p.innerHTML = "Allocated";
             break;
+          case 6: 
+            p.innerHTML = "Reserve";
+            break;
+          case 7: 
+            p.innerHTML = "Total";
+          break;
           default:
             break;
         }
-        th.appendChild(p);
-        tr.appendChild(th);
+        if (j < 8) {
+          th.appendChild(p);
+          tr.appendChild(th);
+        }
       }
     } else {
       let d2cCount = 0;
       let tradeCount = 0;
+      let inv = 0;
+      let res = 0;
+      let allo = 0;
+      let avail = 0;
       for (var j = 0; j < cols; j++) {
         console.log("hit");
         let wine = "";
-        if (combinedWines[i - 1][0] != null) {
-          wine = combinedWines[i - 1][0];
+        if (combinedWines[i - 2][0] != null) {
+          wine = combinedWines[i - 2][0];
         } else {
-          wine = combinedWines[i - 1][1];
+          wine = combinedWines[i - 2][1];
         }
         var td = document.createElement('td');
         //td.appendChild(document.createTextNode('\u0020'))
         var p = document.createElement('p');
         switch (j) {
           case 0:
+            td.className = "wineText";
             p.innerHTML = justMakerName(wine);
             break;
           case 1:
+            td.className = "wineText";
             p.innerHTML = wineName(wine);
             break;
           case 2:
+            td.className = "wineText";
             p.innerHTML = wineVintage(wine.title);
             break;
           case 3:
-            if (combinedWines[i - 1][0] != null) {
-              let inv = combinedWines[i - 1][0].variants[combinedWines[i - 1][2]].inventory[0];
-              let res = inv.reserveCount;
-              let allo = inv.allocatedCount;
-              let avail = inv.availableForSaleCount;
+            d2cCount = 0;
+            if (combinedWines[i - 2][0] != null) {
+              inv = combinedWines[i - 2][0].variants[combinedWines[i - 2][2]].inventory[0];
+              res = inv.reserveCount;
+              allo = inv.allocatedCount;
+              avail = inv.availableForSaleCount;
               d2cCount = res + allo + avail;
+              countType(combinedWines[i - 2][0], d2cCount);
             }
             totalD2C += d2cCount;
-            p.innerHTML = d2cCount;
+            p.innerHTML = avail;
             break;
           case 4:
-            if (combinedWines[i - 1][1] != null) {
-              let inv = combinedWines[i - 1][1].variants[combinedWines[i - 1][2]].inventory[0];
-              let res = inv.reserveCount;
-              let allo = inv.allocatedCount;
-              let avail = inv.availableForSaleCount;
-              tradeCount = res + allo + avail;
-            }
-            totalTrade += tradeCount;
-            p.innerHTML = tradeCount;
+            p.innerHTML = allo;
             break;
           case 5: 
+            p.innerHTML = res;
+            break;
+          case 6:
+            td.className = "smallTotal";
+            p.innerHTML = d2cCount;
+            if (d2cCount <= 12) {
+              td.style.backgroundColor = "rgba(237, 33, 91, .5)";
+              td.setAttribute("background-color", "red");
+            }
+            break;
+          case 7:
+            tradeCount = 0;
+            if (combinedWines[i - 2][1] != null) {
+              inv = combinedWines[i - 2][1].variants[combinedWines[i - 2][2]].inventory[0];
+              res = inv.reserveCount;
+              allo = inv.allocatedCount;
+              avail = inv.availableForSaleCount;
+              tradeCount = res + allo + avail;
+              countType(combinedWines[i - 2][1], tradeCount);
+            }
+            totalTrade += tradeCount;
+            p.innerHTML = avail;
+            break;
+          case 8:
+            p.innerHTML = allo;
+            break;
+          case 9:
+            p.innerHTML = res;
+            break;
+          case 10:
+            td.className = "smallTotal";
+            p.innerHTML = tradeCount;
+            if (tradeCount <= 72) {
+              td.style.backgroundColor = "rgba(237, 33, 91, .5)";
+              td.setAttribute("background-color", "red");
+            }
+            break;
+          case 11:
+            td.className = "total";
             let total = d2cCount + tradeCount;
             totalBottles += total;
             p.innerHTML = total;
@@ -405,6 +502,119 @@ function createTable(rows, cols) {
   }
   table.appendChild(tbody);
   body.appendChild(table)
+  createSummaryTable();
+}
+
+function createSummaryTable() {
+  var body = document.getElementsByTagName('body')[0];
+  var table = document.createElement('table');
+  /*table.style.width = '100%';
+  table.setAttribute('border', '1');*/
+  var tbody = document.createElement('tbody');
+  for (var i = 0; i < 2; i++) {
+    let tr = document.createElement('tr');
+    for (var j = 0; j < 8; j++) {
+      if (i == 0) {
+        let th = document.createElement('th');
+        let p = document.createElement('p');
+        switch(j) {
+          case 0:
+            p.innerHTML = "Total Reds";
+            break;
+          case 1:
+            p.innerHTML = "Total Whites";
+            break;
+          case 2:
+            p.innerHTML = "Total Rosés";
+            break;
+          case 3:
+            p.innerHTML = "Total Sparklings";
+            break;
+          case 4:
+            p.innerHTML = "Total NAs";
+            break;
+          case 5:
+            p.innerHTML = "Total D2C";
+            break;
+          case 6:
+            p.innerHTML = "Total Trade";
+            break;
+          case 7:
+            p.innerHTML = "Grand Total";
+            break;
+          default:
+            break;
+        }
+        th.appendChild(p);
+        tr.appendChild(th);
+      } else if (i == 1) {
+        let td = document.createElement('td');
+        let p = document.createElement('p');
+        switch(j) {
+          case 0:
+            p.innerHTML = totalRed;
+            break;
+          case 1:
+            p.innerHTML = totalWhite;
+            break;
+          case 2:
+            p.innerHTML = totalRose;
+            break;
+          case 3:
+            p.innerHTML = totalSparkling;
+            break;
+          case 4:
+            p.innerHTML = totalNA;
+            break;
+          case 5:
+            td.className = "smallTotal";
+            p.innerHTML = totalD2C;
+            break;
+          case 6:
+            td.className = "smallTotal";
+            p.innerHTML = totalTrade;
+            break;
+          case 7:
+            td.className = "total";
+            p.innerHTML = totalBottles;
+            break;
+          default:
+            break;
+        }
+        td.appendChild(p);
+        tr.appendChild(td);
+      }
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  body.appendChild(table);
+}
+
+
+
+//counts wine type and tallies to global var
+function countType(wine, count) {
+  let type = wine.wine.type;
+  switch(type) {
+    case "Red":
+      totalRed += count;
+      break;
+    case "White":
+      totalWhite += count;
+      break;
+    case "Rose":
+      totalRose += count;
+      break;
+    case "Sparkling":
+      totalSparkling += count;
+      break;
+    default:
+      break;
+  }
+  if (justMakerName(wine) == "Steinbock") {
+    totalNA += count;
+  }
 }
 
 

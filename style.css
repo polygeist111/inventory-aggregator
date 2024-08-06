@@ -28,6 +28,9 @@ table {
   border-collapse: collapse;
   width: 90%;
   transform: translateX(5%);
+  table-layout: auto;
+  min-width: 1180px;
+  margin-bottom: 5vw;
 }
 table a:link {
   color: #dddbff;
@@ -43,7 +46,12 @@ th {
   border: 1px solid #ed215b;
   border-collapse: collapse;
   padding: .5em;
-  color: #8240c4;
+  color: white;
+  font-size: larger;
+}
+
+tr {
+  max-height: min-content;
 }
 
 td {
@@ -52,6 +60,27 @@ td {
   text-align: center;
   padding: .5em;
   color: #dddbff;
+  max-height: min-content;
+}
+
+.smallTotal {
+  min-width: 100px;
+  font-size: x-large;
+}
+
+.total {
+  min-width: 120px;
+  font-weight: bold;
+  font-size: xx-large;
+}
+
+.wineText {
+  font-size: larger;
+}
+
+p {
+  margin: 0px;
+  padding: 0px;
 }
 
 /*
