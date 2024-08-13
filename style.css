@@ -83,6 +83,21 @@ p {
   padding: 0px;
 }
 
+#loadingIcon {
+  width: min-content;
+  margin: auto;
+  text-align: center;
+  margin-top: 25vh;
+}
+
+#loadingIcon h3 {
+  color: white;
+  font-weight: normal;
+}
+
+
+
+
 /*
 First ping trade side, populate array with each wine vintage, maker, name, available ct.
 Repeat process with d2c side, match and only include wines by SKU.

@@ -183,10 +183,12 @@ function aggregateLists() {
     */
     if (alpha == 0) {
       //iterate through variant skus for submatches
+      console.log("standard pair");
+      console.log(d2cWines[d2cInd].variants.length + " " + d2cWines[d2cInd].title);
       for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
         if (d2cWines[d2cInd].variants[variantInd].sku == tradeWines[tradeInd].variants[variantInd].sku) {
           thisWine = [d2cWines[d2cInd], tradeWines[tradeInd], variantInd];
-          break;
+          append(combinedWines, thisWine);
         } else {
           thisWine = [null, null, -1];
           console.log("ERROR: Variant SKU mismatch for " + d2cWines[d2cInd].title + " at variant index " + variantInd);
@@ -201,8 +203,10 @@ function aggregateLists() {
     *   --
     */  
     } else if (alpha < 0) {
+      console.log("left anomaly");
       for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
         thisWine = [d2cWines[d2cInd], null, variantInd];
+        append(combinedWines, thisWine);
       }
       d2cInd++;
     //d2c wine is later in alpha order
@@ -212,12 +216,13 @@ function aggregateLists() {
     *   --
     */  
     } else if (alpha > 0) {
+      console.log("right anomaly");
       for (variantInd = 0; variantInd < tradeWines[tradeInd].variants.length; variantInd++) {
         thisWine = [null, tradeWines[tradeInd], variantInd];
+        append(combinedWines, thisWine);
       }
       tradeInd++;
     }
-    append(combinedWines, thisWine);
   }
   console.log(combinedWines);
   createTable(combinedWines.length + 2, tableCols);
@@ -309,6 +314,7 @@ function wineName(wine) {
 
 //(maker, wine, vintage, d2c count, trade count, total count)
 function createTable(rows, cols) {
+  document.getElementById("loadingIcon").style.display = "none";
   var body = document.getElementsByTagName('body')[0];
   var table = document.createElement('table');
   /*table.style.width = '100%';
