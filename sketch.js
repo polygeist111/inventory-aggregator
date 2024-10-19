@@ -111,7 +111,27 @@ function populateWineList(auth) {
 function sortWineList(auth) {
   let wines = [];
   //let bundles = [];
-  wineList.sort((a,b) => makerName(a.title).localeCompare(makerName(b.title)));
+  console.log(wineList);
+  //wineList.sort((a,b) => justMakerName(a).localeCompare(justMakerName(b)));
+  wineList.sort(function (a,b) {
+    let aTitleString = makerName(a.title);
+    let bTitleString = makerName(b.title);
+    if (aTitleString.includes("Typ")) {
+      let spaceModifier = 3;
+      if (aTitleString.indexOf(":") >= 0) {
+        spaceModifier++;
+      }
+      aTitleString = "Archetyp" + aTitleString.substring(aTitleString.indexOf(("Typ" + spaceModifier)));
+    }
+    if (bTitleString.includes("Typ")) {
+      let spaceModifier = 3;
+      if (bTitleString.indexOf(":") >= 0) {
+        spaceModifier++;
+      }
+      bTitleString = "Archetyp" + bTitleString.substring(bTitleString.indexOf(("Typ" + spaceModifier)));
+    }
+    return aTitleString.localeCompare(bTitleString);
+  });
   wineList.sort(function (a,b) {
     if (makerName(a.title).localeCompare(makerName(b.title)) == 0) {
       //return wineName(a).localeCompare(wineName(b));
@@ -132,7 +152,8 @@ function sortWineList(auth) {
   for (var i = 0; i < bundles.length; i++) {
     wineList.splice(wines.length + i, 1, bundles[i]);
   }*/
-  //console.log(wineList);
+  console.log("Wine List:");
+  console.log(wineList);
   if (auth == D2CAuth) {
     console.log("d2c");
     //wineList.forEach((wine) => append(d2cWines, wine));
@@ -184,7 +205,7 @@ function aggregateLists() {
     if (alpha == 0) {
       //iterate through variant skus for submatches
       console.log("standard pair");
-      console.log(d2cWines[d2cInd].variants.length + " " + d2cWines[d2cInd].title);
+      //console.log(d2cWines[d2cInd].variants.length + " " + d2cWines[d2cInd].title);
       for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
         if (d2cWines[d2cInd].variants[variantInd].sku == tradeWines[tradeInd].variants[variantInd].sku) {
           thisWine = [d2cWines[d2cInd], tradeWines[tradeInd], variantInd];
@@ -202,8 +223,9 @@ function aggregateLists() {
     *   -
     *   --
     */  
-    } else if (alpha < 0) {
+    } else if (alpha > 0) {
       console.log("left anomaly");
+      //console.log(d2cWines[d2cInd].title + " " + tradeWines[tradeInd].title);
       for (variantInd = 0; variantInd < d2cWines[d2cInd].variants.length; variantInd++) {
         thisWine = [d2cWines[d2cInd], null, variantInd];
         append(combinedWines, thisWine);
@@ -215,8 +237,9 @@ function aggregateLists() {
     *    -
     *   --
     */  
-    } else if (alpha > 0) {
+    } else if (alpha < 0) {
       console.log("right anomaly");
+      //console.log(d2cWines[d2cInd].title + " " + tradeWines[tradeInd].title);
       for (variantInd = 0; variantInd < tradeWines[tradeInd].variants.length; variantInd++) {
         thisWine = [null, tradeWines[tradeInd], variantInd];
         append(combinedWines, thisWine);
@@ -265,6 +288,9 @@ function wineVintage(name) {
 //Returns only actual maker name, no wine name
 function justMakerName(wineIn) {
   let name = wineIn.title
+  if (name.includes("Typ")) {
+    return "Archetyp";
+  }
   let makeName = makerName(name);
   let bottleName;
   
@@ -286,6 +312,9 @@ function wineName(wine) {
   if (wine.vendor != null) {
     makerNameSpace = wine.vendor.title.length;
   } else return name;
+  if (name.includes("Typ")) {
+    makerNameSpace = -1;
+  }
   if (wine.vendor.title == "Vinodea / Andrea Schenter") {
     makerNameSpace = 7;
   }
@@ -414,7 +443,7 @@ function createTable(rows, cols) {
       let allo = 0;
       let avail = 0;
       for (var j = 0; j < cols; j++) {
-        console.log("hit");
+        //console.log("hit");
         let wine = "";
         if (combinedWines[i - 2][0] != null) {
           wine = combinedWines[i - 2][0];
@@ -440,14 +469,19 @@ function createTable(rows, cols) {
           case 3:
             d2cCount = 0;
             if (combinedWines[i - 2][0] != null) {
-              inv = combinedWines[i - 2][0].variants[combinedWines[i - 2][2]].inventory[0];
-              res = inv.reserveCount;
-              allo = inv.allocatedCount;
-              avail = inv.availableForSaleCount;
+              inv = combineAvailableInventory(combinedWines[i - 2][0].variants[combinedWines[i - 2][2]].inventory);
+              res = inv[0];
+              allo = inv[1];
+              avail = inv[2];
               d2cCount = res + allo + avail;
               countType(combinedWines[i - 2][0], d2cCount);
+              totalD2C += d2cCount;
+            } else {
+              res = "NA";
+              allo = "NA";
+              avail = "NA";
+              tradeCount = "NA";
             }
-            totalD2C += d2cCount;
             p.innerHTML = avail;
             break;
           case 4:
@@ -467,14 +501,19 @@ function createTable(rows, cols) {
           case 7:
             tradeCount = 0;
             if (combinedWines[i - 2][1] != null) {
-              inv = combinedWines[i - 2][1].variants[combinedWines[i - 2][2]].inventory[0];
-              res = inv.reserveCount;
-              allo = inv.allocatedCount;
-              avail = inv.availableForSaleCount;
+              inv = combineAvailableInventory(combinedWines[i - 2][1].variants[combinedWines[i - 2][2]].inventory);
+              res = inv[0];
+              allo = inv[1];
+              avail = inv[2];
               tradeCount = res + allo + avail;
               countType(combinedWines[i - 2][1], tradeCount);
+              totalTrade += tradeCount;
+            } else {
+              res = "NA";
+              allo = "NA";
+              avail = "NA";
+              tradeCount = "NA";
             }
-            totalTrade += tradeCount;
             p.innerHTML = avail;
             break;
           case 8:
@@ -493,6 +532,12 @@ function createTable(rows, cols) {
             break;
           case 11:
             td.className = "total";
+            if (d2cCount == "NA") {
+              d2cCount = 0;
+            }
+            if (tradeCount == "NA") {
+              tradeCount = 0;
+            }
             let total = d2cCount + tradeCount;
             totalBottles += total;
             p.innerHTML = total;
@@ -651,4 +696,16 @@ function filterPrices(priceIn) {
       }
     }
   }
+}
+
+function combineAvailableInventory(thisVariantInv) {
+  let res = 0;
+  let allo = 0;
+  let avail = 0;
+  for (var i = 0; i < thisVariantInv.length; i++) {
+    res += thisVariantInv[i].reserveCount;
+    allo += thisVariantInv[i].allocatedCount;
+    avail += thisVariantInv[i].availableForSaleCount;
+  }
+  return [res, allo, avail];
 }
