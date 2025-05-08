@@ -268,6 +268,14 @@ Errors to consider and handle:
 
 //Returns wine title without vintage
 function makerName(name) {
+  if (name.includes("Typ")) {
+    let spaceModifier = 3;
+    if (name.indexOf(":") >= 0) {
+      spaceModifier++;
+    }
+    //console.log("SEARCH: " + "Archetyp" + name.substring(name.indexOf("Typ") + spaceModifier));
+    return "Archetyp" + name.substring(name.indexOf(("Typ" + spaceModifier)));
+  }
   if (name.substring(0,1) === "2") {
     return name.substring(5);
   } else return name;
@@ -288,18 +296,13 @@ function wineVintage(name) {
 //Returns only actual maker name, no wine name
 function justMakerName(wineIn) {
   let name = wineIn.title
-  if (name.includes("Typ")) {
-    return "Archetyp";
-  }
   let makeName = makerName(name);
   let bottleName;
   
   bottleName = wineName(wineIn);
+  //console.log("MakeName: " + makeName + " BottleName: " + bottleName);
   let result =  makeName.substring(0, makeName.length - bottleName.length - 1);
   //if (!makers.includes(result)) { makers.push(result); console.log("hi"); } else { console.log("bye"); }
-  if (result.substring(0, 11) == "Hofkellerei") {
-    return "Hofkellerei";
-  }
   return result;
 
 }
@@ -312,14 +315,15 @@ function wineName(wine) {
   if (wine.vendor != null) {
     makerNameSpace = wine.vendor.title.length;
   } else return name;
-  if (name.includes("Typ")) {
-    makerNameSpace = -1;
-  }
-  if (wine.vendor.title == "Vinodea / Andrea Schenter") {
-    makerNameSpace = 7;
-  }
-  if (wine.vendor.title == "Hofkellerei") {
-    makerNameSpace = 42;
+
+  //handle special cases of naming/branding
+  switch (wine.vendor.title) {
+    case "Vinodea / Andrea Schenter":
+      makerNameSpace = 7;
+      break;
+    case "Hofkellerei":
+      makerNameSpace = 23;
+      break;
   }
   return name.substring(makerNameSpace + 1);
 
